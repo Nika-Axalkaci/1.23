@@ -1,26 +1,46 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from "react";
+import Todo from "./components/Todo";
+import { Todos } from "./interfaces/todos.inteface";
+import UseRequest from "./hooks/UseRequest";
+import UseFetch from "./hooks/UseFetch";
 
-function App() {
+const App: React.FC = () => {
+  const {
+    error,
+    loading: fetchLoading,
+    response,
+  } = UseFetch({
+    url: "/api/v1/todos",
+    method: "GET",
+  });
+  const { sendRequest, loading: reqLoading } = UseRequest({
+    url: "/api/v1/todos",
+    method: "POST",
+  });
+  const toDoList =
+    response?.map((todo: Todos) => {
+      return {
+        todo: todo.todo,
+        id: todo._uuid,
+      };
+    }) || [];
+
+  const onFormSubmit = (todo: string) => {
+    sendRequest([{ todo }]).catch((err) => console.log(err));
+  };
+  if (reqLoading || fetchLoading) return <p>loading . . .</p>;
+  if (error) return <p>error</p>;
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <Todo onFormSubmit={onFormSubmit} />
+      {toDoList.map((todo) => (
+        <div key={todo.id}>
+          <h3>{todo.todo}</h3>
+        </div>
+      ))}
     </div>
   );
-}
+};
 
 export default App;
